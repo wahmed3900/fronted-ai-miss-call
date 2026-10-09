@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NeverMiss AI — Dashboard</title>
+
+<!-- Modern Dark Cinema: Inter 700/600/500/400 -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════
+   UI/UX PRO MAX — OLED DARK + MODERN DARK CINEMA
+   BG: #000000 / Surface: #0A0A0A #111 #1A1A1A
+   Accent: #0066FF neon blue  |  Inter type system
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* OLED Dark palette */
+  --bg:        #000000;
+  --s1:        #080808;
+  --s2:        #0f0f0f;
+  --s3:        #161616;
+  --s4:        #1e1e1e;
+  --border:    rgba(255,255,255,.07);
+  --border2:   rgba(255,255,255,.12);
+
+  /* Accent — electric neon blue */
+  --accent:    #0066FF;
+  --accent2:   #3d8bff;
+  --accent-glow: rgba(0,102,255,.25);
+  --accent-dim:  rgba(0,102,255,.12);
+
+  /* Status colors */
+  --green:   #00e57a;
+  --green-d: rgba(0,229,122,.12);
+  --yellow:  #f5a623;
+  --yellow-d:rgba(245,166,35,.12);
+  --red:     #ff4d4d;
+  --red-d:   rgba(255,77,77,.12);
+  --purple:  #a855f7;
+  --purple-d:rgba(168,85,247,.12);
+
+  /* Modern Dark Cinema type scale */
+  --font: 'Inter', sans-serif;
+  --t-display: 700 48px/1.1 var(--font); letter-spacing: -1.5px;
+  --t-h1:  700 32px/1.15 var(--font);
+  --t-h2:  600 24px/1.2 var(--font);
+  --t-h3:  600 18px/1.3 var(--font);
+  --t-body:400 15px/1.6 var(--font);
+  --t-label:500 11px/1 var(--font);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --sidebar: 228px;
+}
+
+html { font-family: var(--font); background: var(--bg); color: #fff; font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--s4); border-radius: 2px; }
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+.sidebar {
+  width: var(--sidebar); min-width: var(--sidebar);
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+}
+
+.sidebar-brand {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 11px;
+}
+.brand-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #6600ff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.brand-name { font-weight: 700; font-size: 16px; letter-spacing: -.3px; }
+.brand-sub  { font-size: 10px; color: rgba(255,255,255,.35); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; margin-top: 1px; }
+
+/* Live status pill */
+.live-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--green-d); border: 1px solid rgba(0,229,122,.2);
+  border-radius: 100px; padding: 3px 10px;
+  font-size: 10px; font-weight: 600; color: var(--green);
+  letter-spacing: .04em; margin: 14px 20px 6px;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+.nav-section { padding: 4px 10px; }
+.nav-label   { font-size: 10px; color: rgba(255,255,255,.22); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; padding: 10px 10px 5px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  color: rgba(255,255,255,.45); font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none; background: none; width: 100%;
+  text-align: left; transition: color .2s, background .2s;
+  position: relative;
+}
+.nav-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+.nav-item.active {
+  color: var(--accent2); background: var(--accent-dim);
+  font-weight: 600;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+.nav-item i { width: 18px; text-align: center; font-size: 14px; }
+.nav-badge {
+  margin-left: auto; background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px;
+}
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-ai-status {
+  margin: 10px; padding: 14px; background: var(--s3);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.ai-status-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ai-status-icon { font-size: 16px; }
+.ai-status-label { font-size: 12px; font-weight: 600; }
+.ai-status-bar { height: 4px; background: var(--s4); border-radius: 2px; overflow: hidden; }
+.ai-status-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 2px; transition: width .4s; }
+.ai-status-sub { font-size: 10px; color: rgba(255,255,255,.3); margin-top: 5px; }
+
+.sidebar-user {
+  padding: 14px 16px 18px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.user-name { font-size: 13px; font-weight: 600; }
+.user-role { font-size: 11px; color: rgba(255,255,255,.35); }
+.user-menu-btn {
+  margin-left: auto; background: none; border: none; color: rgba(255,255,255,.3);
+  cursor: pointer; font-size: 13px; transition: color .2s;
+}
+.user-menu-btn:hover { color: #fff; }
+
+/* ══════════════════════════════
+   MAIN
+══════════════════════════════ */
+.main {
+  margin-left: var(--sidebar); flex: 1; display: flex; flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky; top: 0; z-index: 90;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px; height: 60px;
+  display: flex; align-items: center; gap: 16px;
+}
+.topbar-greeting { font-size: 14px; font-weight: 500; }
+.topbar-greeting span { color: var(--accent2); }
+.topbar-date { font-size: 12px; color: rgba(255,255,255,.3); }
+
+.topbar-search {
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  background: var(--s2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 14px; width: 220px; transition: border-color .2s;
+}
+.topbar-search:focus-within { border-color: var(--accent); }
+.topbar-search input {
+  background: none; border: none; outline: none; color: #fff;
+  font-size: 13px; width: 100%; font-family: var(--font);
+}
+.topbar-search input::placeholder { color: rgba(255,255,255,.2); }
+.topbar-search i { color: rgba(255,255,255,.25); font-size: 12px; }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: var(--s2); border: 1px solid var(--border);
+  color: rgba(255,255,255,.5); cursor: pointer; transition: .2s;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+  position: relative;
+}
+.icon-btn:hover { border-color: var(--border2); color: #fff; }
+.notif-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 7px; height: 7px; background: var(--red);
+  border-radius: 50%; border: 1.5px solid #000;
+}
+.btn-primary {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius-sm); padding: 8px 16px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: .2s; white-space: nowrap;
+  box-shadow: 0 0 20px rgba(0,102,255,.3);
+  font-family: var(--font);
+}
+.btn-primary:hover { background: var(--accent2); box-shadow: 0 0 30px rgba(0,102,255,.45); }
+
+/* Content */
+.content { padding: 24px 28px 40px; flex: 1; }
+
+/* ── Stat Cards ── */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+
+.stat-card {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  cursor: default; transition: transform .25s, box-shadow .25s, border-color .25s;
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 100% 0%, var(--glow-color,rgba(0,102,255,.06)) 0%, transparent 60%);
+  pointer-events: none;
+}
+.stat-card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.stat-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.stat-trend {
+  font-size: 11px; font-weight: 600; padding: 3px 8px;
+  border-radius: 100px; display: flex; align-items: center; gap: 3px;
+}
+.stat-trend.up   { color: var(--green); background: var(--green-d); }
+.stat-trend.down { color: var(--red);   background: var(--red-d); }
+.stat-value {
+  font-size: 36px; font-weight: 700; letter-spacing: -1.5px;
+  margin-top: 12px; line-height: 1;
+}
+.stat-label { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 4px; font-weight: 500; letter-spacing: .03em; }
+
+/* ── Main Grid ── */
+.main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 16px; margin-bottom: 16px; }
+
+/* Panel base */
+.panel {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.panel-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.panel-title { font-size: 14px; font-weight: 700; letter-spacing: -.2px; }
+.panel-sub { font-size: 11px; color: rgba(255,255,255,.3); margin-left: 2px; }
+.panel-actions { margin-left: auto; display: flex; gap: 6px; }
+.tag-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: none; color: rgba(255,255,255,.4);
+  cursor: pointer; transition: .2s; font-family: var(--font);
+}
+.tag-btn.active { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+.tag-btn:hover { border-color: var(--border2); color: #fff; }
+
+.panel-body { padding: 20px; }
+
+/* Chart */
+.chart-wrap { position: relative; height: 200px; }
+
+/* ── Live Feed ── */
+.feed-list { display: flex; flex-direction: column; }
+.feed-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 20px; border-bottom: 1px solid var(--border);
+  transition: background .2s; cursor: pointer;
+}
+.feed-item:last-child { border-bottom: none; }
+.feed-item:hover { background: rgba(255,255,255,.02); }
+
+.feed-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; position: relative;
+}
+.feed-avatar .status-ring {
+  position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid transparent;
+}
+.feed-avatar.handled .status-ring { border-color: var(--green); box-shadow: 0 0 8px var(--green); }
+.feed-avatar.missed  .status-ring { border-color: var(--red); }
+.feed-avatar.active  .status-ring { border-color: var(--accent); box-shadow: 0 0 8px var(--accent); animation: ringPulse 1.5s ease infinite; }
+@keyframes ringPulse { 0%,100%{box-shadow:0 0 6px var(--accent)} 50%{box-shadow:0 0 18px var(--accent)} }
+
+.feed-body { flex: 1; min-width: 0; }
+.feed-name { font-size: 13px; font-weight: 600; }
+.feed-msg  { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed-meta { text-align: right; flex-shrink: 0; }
+.feed-time  { font-size: 11px; color: rgba(255,255,255,.25); }
+.feed-tag   {
+  font-size: 10px; font-weight: 600; padding: 2px 7px;
+  border-radius: 100px; margin-top: 4px; display: inline-block;
+}
+.feed-tag.booked    { background: var(--green-d); color: var(--green); }
+.feed-tag.sms-sent  { background: var(--accent-dim); color: var(--accent2); }
+.feed-tag.missed    { background: var(--red-d); color: var(--red); }
+.feed-tag.calling   { background: var(--yellow-d); color: var(--yellow); }
+
+/* ── Appointments ── */
+.appt-list { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; }
+.appt-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--s3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  transition: transform .25s, box-shadow .25s;
+  cursor: pointer;
+}
+.appt-time-col { text-align: center; min-width: 42px; flex-shrink: 0; }
+.appt-time-hour { font-size: 14px; font-weight: 700; }
+.appt-time-ampm { font-size: 10px; color: rgba(255,255,255,.3); font-weight: 500; }
+.appt-divider { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+.appt-name    { font-size: 13px; font-weight: 600; }
+.appt-type    { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 2px; }
+.appt-dot     { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
+
+/* ── Bottom grid ── */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* Performance ring */
+.ring-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
+.ring-item { text-align: center; }
+.ring-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto 8px; }
+.ring-svg { transform: rotate(-90deg); }
+.ring-bg   { fill: none; stroke: var(--s4); stroke-width: 6; }
+.ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
+.ring-value {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700;
+}
+.ring-label { font-size: 11px; color: rgba(255,255,255,.35); font-weight: 500; }
+
+/* SMS stats */
+.sms-stat { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.sms-stat:last-child { border-bottom: none; }
+.sms-stat-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.sms-stat-label { font-size: 12px; color: rgba(255,255,255,.4); }
+.sms-stat-val   { font-size: 18px; font-weight: 700; }
+.sms-stat-bar   { height: 3px; background: var(--s4); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.sms-stat-fill  { height: 100%; border-radius: 2px; transition: width 1s; }
+
+/* GSAP hover — Standard tier: y:-4, scale:1.02, shadow */
+.hoverable { will-change: transform; }
+
+/* Notification panel hidden by default */
+.notif-panel {
+  position: fixed; top: 60px; right: 20px; width: 300px;
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  z-index: 200; display: none; overflow: hidden;
+}
+.notif-panel.open { display: block; animation: fadeDown .2s ease; }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-8px)} }
+.notif-item {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 12px; display: flex; gap: 10px; align-items: flex-start;
+}
+.notif-item:last-child { border: none; }
+.notif-item i { margin-top: 2px; }
+
+/* Dot grid texture on panels */
+.dot-texture::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 24px 24px; border-radius: inherit;
+}
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, var(--s3) 25%, var(--s4) 50%, var(--s3) 75%);
+  background-size: 200% 100%; border-radius: 4px; height: 14px;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { to{background-position:-200% 0} }
+
+/* ── Responsive ── */
+@media(max-width:1100px){
+  .main-grid { grid-template-columns: 1fr; }
+  .bottom-grid { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:800px){
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .bottom-grid { grid-template-columns: 1fr; }
+  :root { --sidebar: 60px; }
+  .brand-name,.brand-sub,.nav-item span,.nav-label,.sidebar-ai-status,
+  .user-name,.user-role,.live-pill { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .sidebar-brand { justify-content: center; }
+  .sidebar-user { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">📞</div>
+    <div>
+      <div class="brand-name">NeverMiss AI</div>
+      <div class="brand-sub">AI Receptionist</div>
+    </div>
+  </div>
+
+  <div class="live-pill">
+    <div class="live-dot"></div>
+    AI Active
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <button class="nav-item active" onclick="setNav(this)">
+      <i class="fa fa-house"></i><span>Dashboard</span>
+    </button>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-phone"></i><span>Calls</span>
+      <span class="nav-badge">3</span>
+    </button>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-message"></i><span>SMS Threads</span>
+    </button>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-calendar-check"></i><span>Appointments</span>
+    </button>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-chart-line"></i><span>Analytics</span>
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">System</div>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-robot"></i><span>AI Config</span>
+    </button>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-building"></i><span>Businesses</span>
+    </button>
+    <button class="nav-item" onclick="setNav(this)">
+      <i class="fa fa-gear"></i><span>Settings</span>
+    </button>
+  </div>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="sidebar-ai-status">
+    <div class="ai-status-header">
+      <span class="ai-status-icon">⚡</span>
+      <span class="ai-status-label">AI Response Load</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600">94%</span>
+    </div>
+    <div class="ai-status-bar">
+      <div class="ai-status-fill" style="width:94%"></div>
+    </div>
+    <div class="ai-status-sub">Avg 1.2s response · 47 active convos</div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">W</div>
+    <div>
+      <div class="user-name">Waqas Ahmed</div>
+      <div class="user-role">Admin</div>
+    </div>
+    <button class="user-menu-btn"><i class="fa fa-ellipsis-vertical"></i></button>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-greeting">Good morning, <span>Waqas</span> 👋</div>
+      <div class="topbar-date" id="top-date"></div>
+    </div>
+
+    <div class="topbar-search">
+      <i class="fa fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search calls, SMS, clients…" />
+    </div>
+
+    <div class="topbar-actions">
+      <div class="icon-btn" id="notif-btn" onclick="toggleNotif()">
+        <i class="fa fa-bell"></i>
+        <span class="notif-dot"></span>
+      </div>
+      <div class="icon-btn"><i class="fa fa-circle-question"></i></div>
+      <button class="btn-primary" onclick="openCompose()">
+        <i class="fa fa-phone-volume"></i> New Call Flow
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification panel -->
+  <div class="notif-panel" id="notif-panel">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;font-weight:700">Notifications</span>
+      <span style="font-size:11px;color:var(--accent2);cursor:pointer">Mark all read</span>
+    </div>
+    <div class="notif-item">
+      <i class="fa fa-phone text-green" style="color:var(--green)"></i>
+      <div>
+        <div style="font-weight:600;margin-bottom:2px">Call handled — Luis Ramos</div>
+        <div style="color:rgba(255,255,255,.4)">Appointment booked for 2 PM · 2m ago</div>
+      </div>
+    </div>
+    <div class="notif-item">
+      <i class="fa fa-message" style="color:var(--accent2)"></i>
+      <div>
+        <div style="font-weight:600;margin-bottom:2px">SMS replied — Sandra Kim</div>
+        <div style="color:rgba(255,255,255,.4)">Lead confirmed interest · 8m ago</div>
+      </div>
+    </div>
+    <div class="notif-item">
+      <i class="fa fa-triangle-exclamation" style="color:var(--yellow)"></i>
+      <div>
+        <div style="font-weight:600;margin-bottom:2px">Missed call — Unknown #</div>
+        <div style="color:rgba(255,255,255,.4)">SMS auto-sent · 15m ago</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── Stat Cards ── -->
+    <div class="stats-row">
+      <div class="stat-card hoverable" style="--glow-color:rgba(0,102,255,.08)">
+        <div class="stat-card-top">
+          <div class="stat-icon" style="background:var(--accent-dim)">📞</div>
+          <div class="stat-trend up"><i class="fa fa-arrow-up" style="font-size:9px"></i>18%</div>
+        </div>
+        <div class="stat-value" data-count="1247">0</div>
+        <div class="stat-label">Calls Handled This Month</div>
+      </div>
+
+      <div class="stat-card hoverable" style="--glow-color:rgba(0,229,122,.06)">
+        <div class="stat-card-top">
+          <div class="stat-icon" style="background:var(--green-d)">📅</div>
+          <div class="stat-trend up"><i class="fa fa-arrow-up" style="font-size:9px"></i>31%</div>
+        </div>
+        <div class="stat-value" data-count="384">0</div>
+        <div class="stat-label">Appointments Booked</div>
+      </div>
+
+      <div class="stat-card hoverable" style="--glow-color:rgba(168,85,247,.06)">
+        <div class="stat-card-top">
+          <div class="stat-icon" style="background:var(--purple-d)">🎯</div>
+          <div class="stat-trend up"><i class="fa fa-arrow-up" style="font-size:9px"></i>24%</div>
+        </div>
+        <div class="stat-value" data-count="892">0</div>
+        <div class="stat-label">Leads Captured via SMS</div>
+      </div>
+
+      <div class="stat-card hoverable" style="--glow-color:rgba(245,166,35,.06)">
+        <div class="stat-card-top">
+          <div class="stat-icon" style="background:var(--yellow-d)">⚡</div>
+          <div class="stat-trend up"><i class="fa fa-arrow-up" style="font-size:9px"></i>12%</div>
+        </div>
+        <div class="stat-value" id="stat-response">1.2<span style="font-size:16px;font-weight:400;color:rgba(255,255,255,.4)">s</span></div>
+        <div class="stat-label">Avg AI Response Time</div>
+      </div>
+    </div>
+
+    <!-- ── Main Grid ── -->
+    <div class="main-grid">
+
+      <!-- Call Volume Chart -->
+      <div class="panel dot-texture" style="position:relative">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Call Volume</div>
+            <div class="panel-sub">Handled vs Missed</div>
+          </div>
+          <div class="panel-actions">
+            <button class="tag-btn active" onclick="switchChart('7d',this)">7D</button>
+            <button class="tag-btn" onclick="switchChart('30d',this)">30D</button>
+            <button class="tag-btn" onclick="switchChart('90d',this)">90D</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-wrap">
+            <canvas id="callChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Appointments -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Today's Appointments</div>
+            <div class="panel-sub">Oct 9 · 8 booked</div>
+          </div>
+          <button class="tag-btn">View All</button>
+        </div>
+        <div class="appt-list">
+          <div class="appt-item hoverable">
+            <div class="appt-time-col">
+              <div class="appt-time-hour">9:00</div>
+              <div class="appt-time-ampm">AM</div>
+            </div>
+            <div class="appt-divider"></div>
+            <div>
+              <div class="appt-name">Maria Gonzalez</div>
+              <div class="appt-type">HVAC Tune-Up · 60 min</div>
+            </div>
+            <div class="appt-dot" style="background:var(--green)"></div>
+          </div>
+          <div class="appt-item hoverable">
+            <div class="appt-time-col">
+              <div class="appt-time-hour">10:30</div>
+              <div class="appt-time-ampm">AM</div>
+            </div>
+            <div class="appt-divider"></div>
+            <div>
+              <div class="appt-name">Carlos Rivera</div>
+              <div class="appt-type">Plumbing Quote · 45 min</div>
+            </div>
+            <div class="appt-dot" style="background:var(--accent)"></div>
+          </div>
+          <div class="appt-item hoverable">
+            <div class="appt-time-col">
+              <div class="appt-time-hour">1:00</div>
+              <div class="appt-time-ampm">PM</div>
+            </div>
+            <div class="appt-divider"></div>
+            <div>
+              <div class="appt-name">Dr. Priya Shah</div>
+              <div class="appt-type">Dental Consult · 30 min</div>
+            </div>
+            <div class="appt-dot" style="background:var(--green)"></div>
+          </div>
+          <div class="appt-item hoverable">
+            <div class="appt-time-col">
+              <div class="appt-time-hour">2:00</div>
+              <div class="appt-time-ampm">PM</div>
+            </div>
+            <div class="appt-divider"></div>
+            <div>
+              <div class="appt-name">Luis Ramos</div>
+              <div class="appt-type">Roofing Estimate · 90 min</div>
+            </div>
+            <div class="appt-dot" style="background:var(--yellow)"></div>
+          </div>
+          <div class="appt-item hoverable">
+            <div class="appt-time-col">
+              <div class="appt-time-hour">4:30</div>
+              <div class="appt-time-ampm">PM</div>
+            </div>
+            <div class="appt-divider"></div>
+            <div>
+              <div class="appt-name">Amanda Chen</div>
+              <div class="appt-type">Salon Booking · 60 min</div>
+            </div>
+            <div class="appt-dot" style="background:var(--green)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Bottom Grid ── -->
+    <div class="bottom-grid">
+
+      <!-- Live Call Feed -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="live-dot" style="margin-right:4px"></div>
+          <div class="panel-title">Live Activity Feed</div>
+          <div class="panel-actions">
+            <button class="tag-btn active">All</button>
+            <button class="tag-btn">Missed</button>
+          </div>
+        </div>
+        <div class="feed-list" id="feed-list">
+          <!-- injected by JS -->
+        </div>
+      </div>
+
+      <!-- AI Performance Rings -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">AI Performance</div>
+          <span class="panel-sub">This week</span>
+        </div>
+        <div class="ring-grid">
+          <div class="ring-item">
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 80 80" width="80" height="80">
+                <circle class="ring-bg" cx="40" cy="40" r="34"/>
+                <circle class="ring-fill" cx="40" cy="40" r="34"
+                  stroke="var(--green)" stroke-dasharray="213.6"
+                  stroke-dashoffset="213.6" id="ring-1"/>
+              </svg>
+              <div class="ring-value" id="ring-1-val">0%</div>
+            </div>
+            <div class="ring-label">Answer Rate</div>
+          </div>
+          <div class="ring-item">
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 80 80" width="80" height="80">
+                <circle class="ring-bg" cx="40" cy="40" r="34"/>
+                <circle class="ring-fill" cx="40" cy="40" r="34"
+                  stroke="var(--accent)" stroke-dasharray="213.6"
+                  stroke-dashoffset="213.6" id="ring-2"/>
+              </svg>
+              <div class="ring-value" id="ring-2-val">0%</div>
+            </div>
+            <div class="ring-label">Booking Rate</div>
+          </div>
+          <div class="ring-item">
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 80 80" width="80" height="80">
+                <circle class="ring-bg" cx="40" cy="40" r="34"/>
+                <circle class="ring-fill" cx="40" cy="40" r="34"
+                  stroke="var(--purple)" stroke-dasharray="213.6"
+                  stroke-dashoffset="213.6" id="ring-3"/>
+              </svg>
+              <div class="ring-value" id="ring-3-val">0%</div>
+            </div>
+            <div class="ring-label">SMS Open Rate</div>
+          </div>
+          <div class="ring-item">
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 80 80" width="80" height="80">
+                <circle class="ring-bg" cx="40" cy="40" r="34"/>
+                <circle class="ring-fill" cx="40" cy="40" r="34"
+                  stroke="var(--yellow)" stroke-dasharray="213.6"
+                  stroke-dashoffset="213.6" id="ring-4"/>
+              </svg>
+              <div class="ring-value" id="ring-4-val">0%</div>
+            </div>
+            <div class="ring-label">Lead Conversion</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SMS Stats -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">SMS Automation</div>
+          <span class="panel-sub">Today</span>
+        </div>
+        <div class="panel-body">
+          <div class="sms-stat">
+            <div class="sms-stat-icon" style="background:var(--accent-dim)">📤</div>
+            <div style="flex:1">
+              <div class="sms-stat-label">Messages Sent</div>
+              <div class="sms-stat-val">1,084</div>
+              <div class="sms-stat-bar"><div class="sms-stat-fill" style="width:86%;background:var(--accent)"></div></div>
+            </div>
+          </div>
+          <div class="sms-stat">
+            <div class="sms-stat-icon" style="background:var(--green-d)">✅</div>
+            <div style="flex:1">
+              <div class="sms-stat-label">Delivered</div>
+              <div class="sms-stat-val">1,061</div>
+              <div class="sms-stat-bar"><div class="sms-stat-fill" style="width:97%;background:var(--green)"></div></div>
+            </div>
+          </div>
+          <div class="sms-stat">
+            <div class="sms-stat-icon" style="background:var(--purple-d)">💬</div>
+            <div style="flex:1">
+              <div class="sms-stat-label">Replied</div>
+              <div class="sms-stat-val">437</div>
+              <div class="sms-stat-bar"><div class="sms-stat-fill" style="width:41%;background:var(--purple)"></div></div>
+            </div>
+          </div>
+          <div class="sms-stat">
+            <div class="sms-stat-icon" style="background:var(--yellow-d)">📅</div>
+            <div style="flex:1">
+              <div class="sms-stat-label">Appointments from SMS</div>
+              <div class="sms-stat-val">189</div>
+              <div class="sms-stat-bar"><div class="sms-stat-fill" style="width:43%;background:var(--yellow)"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────
+// DATE
+// ─────────────────────────────────────────────
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const now = new Date();
+document.getElementById('top-date').textContent =
+  `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()} ${now.getFullYear()}`;
+
+// ─────────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────────
+function setNav(el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+function toggleNotif() {
+  document.getElementById('notif-panel').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#notif-btn') && !e.target.closest('#notif-panel')) {
+    document.getElementById('notif-panel').classList.remove('open');
+  }
+});
+
+function openCompose() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML=`<div style="background:#0f0f0f;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:28px;width:480px;max-width:95vw;">
+    <div style="font-size:16px;font-weight:700;margin-bottom:18px">🎙 New Call Flow</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:16px">Configure how the AI handles incoming calls for a business.</div>
+    <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">Business Name</label>
+    <input style="width:100%;background:#000;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-family:Inter,sans-serif;font-size:13px;margin-bottom:12px;" placeholder="e.g. Riverside HVAC">
+    <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">AI Greeting Message</label>
+    <textarea style="width:100%;background:#000;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-family:Inter,sans-serif;font-size:13px;resize:vertical;min-height:80px;margin-bottom:16px;" placeholder="Hi, thanks for calling! Our team is unavailable right now. I'm an AI assistant — can I help book an appointment?"></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);border-radius:8px;padding:9px 18px;font-family:Inter,sans-serif;cursor:pointer;">Cancel</button>
+      <button onclick="this.closest('div[style]').remove()" style="background:#0066FF;border:none;color:#fff;border-radius:8px;padding:9px 18px;font-family:Inter,sans-serif;font-weight:600;cursor:pointer;">Create Flow</button>
+    </div>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove()};
+  document.body.appendChild(overlay);
+}
+
+// ─────────────────────────────────────────────
+// COUNTER ANIMATION
+// ─────────────────────────────────────────────
+function animateCount(el, target, suffix='') {
+  let start = 0;
+  const duration = 1400;
+  const step = timestamp => {
+    if (!step.start) step.start = timestamp;
+    const progress = Math.min((timestamp - step.start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.innerHTML = Math.floor(ease * target).toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// ─────────────────────────────────────────────
+// RING ANIMATION
+// ─────────────────────────────────────────────
+function animateRing(id, pct) {
+  const circ = 213.6;
+  const ring = document.getElementById(id);
+  const val  = document.getElementById(id+'-val');
+  const offset = circ - (pct/100)*circ;
+  let current = 0;
+  const duration = 1200;
+  const step = ts => {
+    if (!step.start) step.start = ts;
+    const p = Math.min((ts - step.start)/duration, 1);
+    const ease = 1 - Math.pow(1-p,3);
+    ring.style.strokeDashoffset = circ - ease*(pct/100)*circ;
+    val.textContent = Math.round(ease*pct)+'%';
+    if (p<1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// ─────────────────────────────────────────────
+// BOOT ANIMATIONS (Intersection Observer)
+// ─────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    observer.unobserve(entry.target);
+    // Stat counters
+    entry.target.querySelectorAll('[data-count]').forEach(el => {
+      animateCount(el, +el.dataset.count);
+    });
+    // Rings
+    setTimeout(()=>animateRing('ring-1',97),200);
+    setTimeout(()=>animateRing('ring-2',68),400);
+    setTimeout(()=>animateRing('ring-3',83),600);
+    setTimeout(()=>animateRing('ring-4',44),800);
+  });
+}, { threshold: 0.1 });
+observer.observe(document.querySelector('.stats-row'));
+
+// ─────────────────────────────────────────────
+// GSAP HOVER — Standard tier
+// ─────────────────────────────────────────────
+document.querySelectorAll('.hoverable').forEach(el => {
+  const qY  = gsap.quickTo(el,'y',{duration:.25,ease:'power2.out'});
+  const qS  = gsap.quickTo(el,'scale',{duration:.25,ease:'power2.out'});
+  el.addEventListener('mouseenter', () => {
+    qY(-4); qS(1.02);
+    gsap.to(el, { boxShadow:'0 12px 28px rgba(0,0,0,.35)', duration:.25 });
+  });
+  el.addEventListener('mouseleave', () => {
+    qY(0); qS(1);
+    gsap.to(el, { boxShadow:'none', duration:.25 });
+  });
+});
+
+// ─────────────────────────────────────────────
+// CHART.JS — Call Volume
+// ─────────────────────────────────────────────
+const datasets = {
+  '7d': {
+    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    handled:[42,58,71,55,83,38,29],
+    missed:[8,11,9,14,6,12,7]
+  },
+  '30d': {
+    labels:['W1','W2','W3','W4'],
+    handled:[280,312,298,357],
+    missed:[48,55,42,61]
+  },
+  '90d': {
+    labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
+    handled:[820,910,875,990,1050,980,1120,1090,1247],
+    missed:[145,160,138,175,151,168,142,157,163]
+  }
+};
+
+const ctx = document.getElementById('callChart').getContext('2d');
+let callChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: datasets['7d'].labels,
+    datasets: [
+      {
+        label: 'Handled',
+        data: datasets['7d'].handled,
+        backgroundColor: 'rgba(0,102,255,.7)',
+        borderRadius: 5,
+        borderSkipped: false,
+      },
+      {
+        label: 'Missed',
+        data: datasets['7d'].missed,
+        backgroundColor: 'rgba(255,77,77,.5)',
+        borderRadius: 5,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: { color:'rgba(255,255,255,.5)', font:{ family:'Inter',size:11 }, boxWidth:10, padding:16 }
+      },
+      tooltip: {
+        backgroundColor:'#1a1a1a', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
+        titleColor:'#fff', bodyColor:'rgba(255,255,255,.6)',
+        titleFont:{family:'Inter',weight:'600'}, bodyFont:{family:'Inter'},
+        padding:10, cornerRadius:8,
+      }
+    },
+    scales: {
+      x: {
+        grid: { color:'rgba(255,255,255,.04)', drawBorder:false },
+        ticks: { color:'rgba(255,255,255,.3)', font:{family:'Inter',size:11} }
+      },
+      y: {
+        grid: { color:'rgba(255,255,255,.04)', drawBorder:false },
+        ticks: { color:'rgba(255,255,255,.3)', font:{family:'Inter',size:11} },
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+function switchChart(period, btn) {
+  document.querySelectorAll('.panel-actions .tag-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = datasets[period];
+  callChart.data.labels = d.labels;
+  callChart.data.datasets[0].data = d.handled;
+  callChart.data.datasets[1].data = d.missed;
+  callChart.update('active');
+}
+
+// ─────────────────────────────────────────────
+// LIVE FEED
+// ─────────────────────────────────────────────
+const feedData = [
+  { name:'Maria G.',  msg:'Booked HVAC tune-up for 9 AM', time:'just now', type:'handled', tag:'booked',   initials:'MG', color:'#0066FF' },
+  { name:'(279) 555-0182', msg:'Missed call → SMS auto-sent', time:'1m ago',  type:'missed',  tag:'sms-sent', initials:'?',  color:'#333' },
+  { name:'Carlos R.', msg:'"What are your plumbing rates?"', time:'3m ago',  type:'active',  tag:'calling',  initials:'CR', color:'#a855f7' },
+  { name:'Sandra K.', msg:'Replied to SMS — confirmed appt', time:'7m ago',  type:'handled', tag:'booked',   initials:'SK', color:'#00e57a' },
+  { name:'Luis R.',   msg:'"Can I get a roofing quote today?"',time:'9m ago', type:'handled', tag:'sms-sent', initials:'LR', color:'#0066FF' },
+  { name:'(279) 555-0341', msg:'Missed call → SMS auto-sent', time:'14m ago', type:'missed', tag:'missed',   initials:'?',  color:'#333' },
+];
+
+document.getElementById('feed-list').innerHTML = feedData.map(f=>`
+  <div class="feed-item">
+    <div class="feed-avatar ${f.type}" style="background:${f.color}20;color:${f.color}">
+      <div class="status-ring"></div>
+      ${f.initials}
+    </div>
+    <div class="feed-body">
+      <div class="feed-name">${f.name}</div>
+      <div class="feed-msg">${f.msg}</div>
+    </div>
+    <div class="feed-meta">
+      <div class="feed-time">${f.time}</div>
+      <div class="feed-tag ${f.tag}">${f.tag.replace('-',' ')}</div>
+    </div>
+  </div>`).join('');
+
+// ─────────────────────────────────────────────
+// GSAP — Panel entry animations
+// ─────────────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+gsap.from('.stat-card', { y:24, opacity:0, duration:.5, stagger:.08, ease:'power2.out', delay:.1 });
+gsap.from('.panel',     { y:28, opacity:0, duration:.55, stagger:.1, ease:'power2.out', delay:.3,
+  scrollTrigger:{ trigger:'.main-grid', start:'top 90%' } });
+gsap.from('.bottom-grid .panel', { y:28, opacity:0, duration:.55, stagger:.12, ease:'power2.out',
+  scrollTrigger:{ trigger:'.bottom-grid', start:'top 90%' } });
+
+// Appointment items
+gsap.from('.appt-item', { x:16, opacity:0, duration:.4, stagger:.06, ease:'power2.out', delay:.5 });
+</script>
+</body>
+</html>
